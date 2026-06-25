@@ -15,3 +15,4 @@ npm run build:weapp # 微信小程序构建
 
 - **fire** — 人生自由度仪表盘 (FIRE)
 - **body** — 体重与身体维度管理
+# GitHub + 微信云托管 连通性测试 - Fri Jun 26 01:13:28 CST 2026
