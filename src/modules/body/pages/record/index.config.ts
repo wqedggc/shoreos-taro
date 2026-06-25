@@ -1,3 +1,3 @@
 export default definePageConfig({
-  navigationBarTitleText: 'ShoreOS',
+  navigationBarTitleText: '记录身体数据',
 });

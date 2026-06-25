@@ -1,3 +1,3 @@
 export default definePageConfig({
-  navigationBarTitleText: 'ShoreOS',
+  navigationBarTitleText: '导入数据',
 });

@@ -1,0 +1,15 @@
+.import-page { padding: 16px 12px; min-height: 100vh; background: #f2f2f7; }
+.tip-card { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.tip-title { font-size: 14px; font-weight: 700; display: block; margin-bottom: 6px; }
+.tip-desc { font-size: 12px; color: #8e8e93; white-space: pre-line; line-height: 1.6; }
+.textarea-card { background: #fff; border-radius: 14px; padding: 12px; margin-bottom: 16px; }
+.csv-textarea {
+  width: 100%; min-height: 180px; font-size: 13px;
+  font-family: monospace; line-height: 1.5; color: #1c1c1e;
+}
+.import-actions { display: flex; gap: 10px; }
+.btn-file, .btn-import {
+  flex: 1; border-radius: 14px; font-size: 15px; font-weight: 700;
+}
+.btn-file { background: #fff; color: #1c1c1e; }
+.btn-import { background: #007aff; color: #fff; }

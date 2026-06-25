@@ -1,0 +1,63 @@
+.fire-result { padding: 16px 12px 80px; min-height: 100vh; background: #f2f2f7; }
+
+/* 自由指数大卡 */
+.hero-card {
+  background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+  border-radius: 16px; padding: 28px 20px; margin-bottom: 12px; text-align: center;
+}
+.hero-label { font-size: 13px; color: rgba(255,255,255,0.8); display: block; }
+.hero-value { font-size: 56px; font-weight: 900; color: #fff; display: block; margin: 8px 0; }
+.hero-sub { font-size: 13px; color: rgba(255,255,255,0.9); display: block; }
+
+/* 指标网格 */
+.metric-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.metric-cell {
+  flex: 1 1 45%; background: #fff; border-radius: 14px; padding: 16px 12px; text-align: center;
+}
+.cell-value { font-size: 24px; font-weight: 800; color: #1c1c1e; display: block; }
+.cell-label { font-size: 11px; color: #8e8e93; margin-top: 4px; }
+
+/* 信息卡 */
+.info-card { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.card-title { font-size: 15px; font-weight: 700; display: block; margin-bottom: 10px; }
+.info-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid #f5f5f7;
+}
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: 14px; color: #8e8e93; }
+.info-value { font-size: 14px; font-weight: 600; color: #1c1c1e; }
+
+/* 情景推演 */
+.scenario-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid #f5f5f7;
+}
+.scenario-row:last-child { border-bottom: none; }
+.scenario-left { flex: 1; }
+.scenario-label { font-size: 14px; font-weight: 600; color: #1c1c1e; display: block; }
+.scenario-age { font-size: 12px; color: #8e8e93; margin-top: 2px; }
+.scenario-right { text-align: right; }
+.scenario-assets { font-size: 16px; font-weight: 800; color: #007aff; display: block; }
+.scenario-free { font-size: 11px; color: #34c759; }
+
+/* 预测柱图 */
+.proj-chart {
+  display: flex; align-items: flex-end; height: 140px;
+  padding: 10px 0 0; gap: 4px;
+}
+.proj-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+.proj-bar { width: 100%; max-width: 20px; background: #007aff; border-radius: 4px 4px 0 0; opacity: 0.8; min-height: 4px; }
+.proj-label { font-size: 8px; color: #8e8e93; margin-top: 4px; transform: scale(0.85); }
+
+.recalc-btn {
+  background: #fff; color: #007aff; border-radius: 14px;
+  padding: 16px; text-align: center; font-size: 16px; font-weight: 700;
+}
+
+/* 空状态 */
+.empty { text-align: center; padding: 80px 20px; color: #8e8e93; }
+.goto-calc {
+  display: inline-block; margin-top: 16px; background: #007aff; color: #fff;
+  padding: 12px 32px; border-radius: 14px; font-size: 15px; font-weight: 700;
+}

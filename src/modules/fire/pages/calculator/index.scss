@@ -1,0 +1,23 @@
+.fire-calc { padding: 16px 12px 80px; min-height: 100vh; background: #f2f2f7; }
+.form-group { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.group-title { font-size: 14px; font-weight: 700; color: #8e8e93; display: block; margin-bottom: 8px; }
+.form-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid #f5f5f7;
+}
+.form-row:last-child { border-bottom: none; }
+.form-label { width: 80px; font-size: 14px; color: #1c1c1e; flex-shrink: 0; }
+.form-input {
+  flex: 1; padding: 8px 12px; border: 1.5px solid #e5e5ea;
+  border-radius: 8px; font-size: 15px; text-align: right; background: #fdfaf7;
+}
+.form-picker {
+  flex: 1; padding: 8px 12px; border: 1.5px solid #e5e5ea;
+  border-radius: 8px; font-size: 15px; text-align: right; background: #fdfaf7; color: #1c1c1e;
+}
+.form-unit { font-size: 12px; color: #8e8e93; width: 28px; }
+.calc-btn {
+  position: fixed; bottom: 20px; left: 12px; right: 12px;
+  background: #007aff; color: #fff; border-radius: 14px;
+  padding: 16px; text-align: center; font-size: 16px; font-weight: 700;
+}

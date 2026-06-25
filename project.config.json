@@ -2,7 +2,7 @@
   "miniprogramRoot": "dist/",
   "projectname": "shoreos",
   "description": "ShoreOS 个人数据管理平台",
-  "appid": "",
+  "appid": "wx567cd9ea054b7225",
   "setting": {
     "urlCheck": true,
     "es6": false,

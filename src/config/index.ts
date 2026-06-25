@@ -1,11 +1,11 @@
 export const APP_CONFIG = {
-  appId: '',           // 小程序 AppID，上线前填写
+  appId: 'wx567cd9ea054b7225',  // 微信小程序 AppID
   appName: 'ShoreOS',
   version: '2.0.0',
 
   // CloudBase 配置
   cloudbase: {
-    env: '',           // CloudBase 环境 ID，上线前填写
+    env: 'shoreos-d3gvi1l8qa5c37ff3',  // CloudBase 环境 ID
     collections: {
       users: 'users',
       fireData: 'fire_data',

@@ -35,6 +35,11 @@ export default defineConfig({
   h5: {
     publicPath: '/',
     staticDirectory: 'static',
+    htmlPlugin: {
+      filename: 'index.html',
+      template: '',
+      inject: true,
+    },
     postcss: {
       autoprefixer: { enable: true, config: {} },
       cssModules: { enable: false, config: { namingPattern: 'module', generateScopedName: '[name]__[local]___[hash:base64:5]' } }

@@ -1,3 +1,3 @@
 export default definePageConfig({
-  navigationBarTitleText: 'ShoreOS',
+  navigationBarTitleText: '自由指数计算',
 });
