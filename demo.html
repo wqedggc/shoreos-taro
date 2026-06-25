@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ShoreOS v2.0 Demo</title>
+<style>
+:root {
+  --bg: #f2f2f7; --card: #fff; --sep: #e5e5ea; --text: #1c1c1e; --sub: #8e8e93;
+  --blue: #007aff; --green: #34c759; --orange: #ff9500;
+  --radius: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  background: var(--bg); color: var(--text);
+  display: flex; justify-content: center; min-height: 100vh;
+}
+.phone {
+  width: 100%; max-width: 430px; min-height: 100vh; background: var(--bg);
+  position: relative; padding-bottom: 70px;
+}
+@media (min-width: 431px) {
+  .phone {
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 20px 60px rgba(0,0,0,0.12);
+    border-radius: 20px; margin: 20px 0; max-height: 920px; overflow-y: auto;
+  }
+  .phone::-webkit-scrollbar { width: 0; }
+  body { align-items: flex-start; }
+}
+
+/* Status bar */
+.status-bar { padding: 14px 20px 8px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; }
+.status-bar .badge { font-size: 10px; background: #ff6b35; color: #fff; padding: 2px 8px; border-radius: 8px; }
+
+/* Page sections */
+.page { display: none; padding: 0 0 20px; }
+.page.active { display: block; }
+
+/* ===== DASHBOARD ===== */
+.dash-header { padding: 8px 20px 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+.dash-greeting { font-size: 26px; font-weight: 800; }
+.dash-ver { font-size: 11px; color: #c7c7cc; }
+
+.dash-cards { padding: 0 12px; }
+.dash-card {
+  background: var(--card); border-radius: var(--radius); padding: 18px 16px;
+  margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; transition: transform 0.15s;
+}
+.dash-card:active { transform: scale(0.98); }
+.dash-card.disabled { opacity: 0.5; border: 1px dashed var(--sep); pointer-events: none; }
+.card-left { display: flex; align-items: center; gap: 14px; }
+.card-left .icon { font-size: 34px; }
+.card-info .name { font-size: 16px; font-weight: 700; display: block; }
+.card-info .desc { font-size: 12px; color: var(--sub); margin-top: 2px; }
+.card-preview { font-size: 13px; color: var(--sub); text-align: right; }
+.card-preview .big { font-size: 20px; font-weight: 800; color: var(--text); display: block; }
+
+.dash-section-title { padding: 14px 4px 8px; font-size: 12px; color: var(--sub); font-weight: 600; text-transform: uppercase; }
+
+/* ===== BODY PAGE ===== */
+.body-metrics { display: flex; gap: 8px; margin: 0 12px 12px; }
+.body-metric {
+  flex: 1; background: var(--card); border-radius: var(--radius);
+  padding: 18px 10px; text-align: center;
+}
+.metric-val { font-size: 30px; font-weight: 900; display: block; }
+.metric-lbl { font-size: 11px; color: var(--sub); margin-top: 4px; }
+
+.body-card { background: var(--card); border-radius: var(--radius); padding: 16px; margin: 0 12px 12px; }
+.body-card .ct { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+.progress { height: 8px; background: #e5e5ea; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+.progress .fill { height: 100%; background: var(--green); border-radius: 4px; width: 0%; transition: width 0.5s; }
+.progress-text { font-size: 12px; color: var(--sub); }
+
+.actions { display: flex; gap: 10px; margin: 0 12px 12px; }
+.btn {
+  flex: 1; padding: 14px; border-radius: var(--radius); text-align: center;
+  font-size: 15px; font-weight: 700; border: none; cursor: pointer; font-family: inherit;
+}
+.btn.primary { background: var(--blue); color: #fff; }
+.btn.secondary { background: var(--card); color: var(--text); }
+.btn:active { transform: scale(0.97); }
+
+/* Chart placeholder */
+.chart-placeholder {
+  background: linear-gradient(180deg, rgba(0,122,255,0.06) 0%, rgba(0,122,255,0) 100%);
+  height: 180px; border-radius: 8px; display: flex; align-items: flex-end;
+  justify-content: space-around; padding: 0 20px 20px;
+}
+.chart-bar {
+  width: 12px; background: var(--blue); border-radius: 6px 6px 0 0;
+  transition: height 0.6s ease; opacity: 0.7;
+}
+
+/* ===== PROFILE ===== */
+.profile-header {
+  background: var(--card); padding: 32px 20px 24px; text-align: center; margin-bottom: 12px;
+}
+.avatar {
+  width: 68px; height: 68px; border-radius: 50%; background: #f0f0f5;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 34px;
+}
+.nickname { font-size: 18px; font-weight: 700; display: block; }
+.uid { font-size: 12px; color: var(--sub); margin-top: 4px; }
+
+.profile-section { background: var(--card); border-radius: var(--radius); margin: 0 12px 12px; overflow: hidden; }
+.profile-section .st { font-size: 12px; color: var(--sub); padding: 14px 16px 6px; font-weight: 600; text-transform: uppercase; }
+.pitem {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px; border-bottom: 1px solid #f5f5f7; font-size: 15px;
+}
+.pitem:last-child { border-bottom: none; }
+.pitem .val { color: var(--sub); font-size: 14px; }
+
+/* Tab bar */
+.tab-bar {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; background: rgba(249,249,249,0.94);
+  backdrop-filter: blur(20px); border-top: 1px solid var(--sep);
+  display: flex; padding: 6px 0 env(safe-area-inset-bottom, 8px); z-index: 100;
+}
+.tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 4px 0; border: none; background: transparent; cursor: pointer;
+  font-family: inherit; color: var(--sub); font-size: 10px; font-weight: 600;
+  transition: color 0.15s;
+}
+.tab .ti { font-size: 22px; margin-bottom: 2px; }
+.tab.active { color: var(--blue); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4); z-index: 200; display: none;
+  align-items: flex-end; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-sheet {
+  width: 100%; max-width: 430px; background: #fff;
+  border-radius: 20px 20px 0 0; padding: 20px 16px 40px;
+}
+.modal-sheet h3 { font-size: 17px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+.form-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.form-row label { width: 60px; font-size: 14px; color: var(--sub); flex-shrink: 0; }
+.form-row input {
+  flex: 1; padding: 10px 12px; border: 1.5px solid var(--sep);
+  border-radius: 8px; font-size: 15px; text-align: right; background: #fdfaf7;
+  font-family: inherit;
+}
+.form-row span { font-size: 12px; color: var(--sub); width: 30px; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate { animation: fadeIn 0.4s ease-out; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- Dashboard -->
+  <div class="page active" id="page-dashboard">
+    <div class="status-bar"><span>9:41</span><span>ShoreOS <span class="badge">v2.0</span></span></div>
+    <div class="dash-header">
+      <div class="dash-greeting">你好 👋</div>
+      <div class="dash-ver">v2.0.0-demo</div>
+    </div>
+    <div class="dash-cards animate">
+      <div class="dash-card" onclick="switchTab('dashboard')">
+        <div class="card-left"><span class="icon">🔥</span>
+          <div class="card-info"><span class="name">自由指数</span><span class="desc">点击进入 →</span></div>
+        </div>
+        <div class="card-preview"><span class="big">--</span>未计算</div>
+      </div>
+      <div class="dash-card" onclick="switchTab('body')">
+        <div class="card-left"><span class="icon">⚖️</span>
+          <div class="card-info"><span class="name">体重管理</span><span class="desc" id="bodyCardPreview">点击进入 →</span></div>
+        </div>
+        <div class="card-preview"><span class="big" id="bodyCardVal">--</span><span id="bodyCardSub"></span></div>
+      </div>
+      <div class="dash-section-title">即将上线</div>
+      <div class="dash-card disabled">
+        <div class="card-left"><span class="icon">💳</span><div class="card-info"><span class="name">记账</span><span class="desc">敬请期待</span></div></div>
+      </div>
+      <div class="dash-card disabled">
+        <div class="card-left"><span class="icon">😴</span><div class="card-info"><span class="name">睡眠</span><span class="desc">敬请期待</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body Page -->
+  <div class="page" id="page-body">
+    <div class="status-bar"><span>9:41</span><span>⚖️ 体重管理</span></div>
+    <div style="height:8px;"></div>
+    <div class="body-metrics animate">
+      <div class="body-metric"><span class="metric-val" id="bmWeight">--</span><span class="metric-lbl">体重 kg</span></div>
+      <div class="body-metric"><span class="metric-val" id="bmFat">--</span><span class="metric-lbl">体脂率 %</span></div>
+      <div class="body-metric"><span class="metric-val" id="bmBMI">--</span><span class="metric-lbl">BMI</span></div>
+    </div>
+
+    <div class="body-card animate">
+      <div class="ct">🎯 目标体重 <b id="targetWeight">65</b>kg</div>
+      <div class="progress"><div class="fill" id="targetProgress"></div></div>
+      <div class="progress-text" id="targetText">暂无数据，开始记录吧</div>
+    </div>
+
+    <div class="actions animate">
+      <button class="btn primary" onclick="openModal()">✏️ 记录数据</button>
+      <button class="btn secondary" onclick="importCSV()">📥 导入CSV</button>
+    </div>
+
+    <div class="body-card animate">
+      <div class="ct">📈 体重趋势（模拟）</div>
+      <div class="chart-placeholder" id="chartBars"></div>
+    </div>
+
+    <div class="body-card animate">
+      <div class="ct">📋 最近记录</div>
+      <div id="historyList" style="font-size:13px;color:var(--sub);text-align:center;padding:20px 0;">暂无数据</div>
+    </div>
+  </div>
+
+  <!-- Profile Page -->
+  <div class="page" id="page-profile">
+    <div class="status-bar"><span>9:41</span><span>👤 我的</span></div>
+    <div class="profile-header animate">
+      <div class="avatar">👤</div>
+      <span class="nickname">ShoreOS 用户</span>
+      <span class="uid">登录后可同步数据</span>
+    </div>
+    <div class="profile-section animate">
+      <div class="st">数据管理</div>
+      <div class="pitem"><span>📊 自由指数数据</span><span class="val" style="color:#c7c7cc">›</span></div>
+      <div class="pitem"><span>⚖️ 体重数据</span><span class="val" id="bodyDataCount">0 条记录</span></div>
+      <div class="pitem"><span>📤 导出数据</span><span class="val" style="color:#c7c7cc">›</span></div>
+    </div>
+    <div class="profile-section animate">
+      <div class="st">关于</div>
+      <div class="pitem"><span>版本号</span><span class="val">v2.0.0-demo</span></div>
+      <div class="pitem"><span>技术栈</span><span class="val">Taro + React + CloudBase</span></div>
+      <div class="pitem"><span>仓库</span><span class="val">github.com/wqedggc/shoreos-taro</span></div>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('dashboard')"><span class="ti">🏠</span>首页</button>
+    <button class="tab" onclick="switchTab('body')"><span class="ti">⚖️</span>体重</button>
+    <button class="tab" onclick="switchTab('profile')"><span class="ti">👤</span>我的</button>
+  </div>
+</div>
+
+<!-- Record Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-sheet">
+    <h3>记录身体数据</h3>
+    <div class="form-row"><label>日期</label><input type="date" id="recDate"></div>
+    <div class="form-row"><label>体重</label><input type="number" id="recWeight" placeholder="68.5" step="0.1"><span>kg</span></div>
+    <div class="form-row"><label>体脂率</label><input type="number" id="recFat" placeholder="22.1" step="0.1"><span>%</span></div>
+    <div class="actions" style="margin:16px 0 0;">
+      <button class="btn secondary" onclick="closeModal()">取消</button>
+      <button class="btn primary" onclick="saveRecord()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Data store (simulating CloudBase)
+let records = JSON.parse(localStorage.getItem('shoreos_body') || '[]');
+if(records.length === 0){
+  // Seed some demo data
+  const today = new Date();
+  for(let i = 30; i >= 0; i -= 3){
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    records.push({
+      date: d.toISOString().slice(0,10),
+      weight: (70.5 - i * 0.08 + Math.random() * 0.3).toFixed(1),
+      fat: (24 - i * 0.07 + Math.random() * 0.2).toFixed(1)
+    });
+  }
+}
+records.sort((a,b) => a.date.localeCompare(b.date));
+
+function saveRecords(){ localStorage.setItem('shoreos_body', JSON.stringify(records)); }
+
+function switchTab(tab){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const targets = ['dashboard','body','profile'];
+    t.classList.toggle('active', targets[i] === tab);
+  });
+  if(tab === 'body') renderBody();
+}
+
+function renderBody(){
+  if(records.length === 0) return;
+  const latest = records[records.length-1];
+  document.getElementById('bmWeight').textContent = latest.weight;
+  document.getElementById('bmFat').textContent = latest.fat + '%';
+  const bmi = (parseFloat(latest.weight) / (1.75*1.75)).toFixed(1);
+  document.getElementById('bmBMI').textContent = bmi;
+
+  // Target progress
+  const target = 65;
+  const current = parseFloat(latest.weight);
+  const startWeight = parseFloat(records[0].weight);
+  const totalLoss = Math.max(startWeight - target, 0.1);
+  const progress = Math.min(((startWeight - current) / totalLoss * 100), 100);
+  document.getElementById('targetProgress').style.width = progress.toFixed(0) + '%';
+  document.getElementById('targetText').textContent = 
+    current <= target ? '🎉 已达成目标！' : `还差 ${(current - target).toFixed(1)}kg · 进度 ${progress.toFixed(0)}%`;
+
+  // Chart bars
+  const bars = document.getElementById('chartBars');
+  bars.innerHTML = '';
+  const minW = Math.min(...records.map(r=>parseFloat(r.weight)));
+  const maxW = Math.max(...records.map(r=>parseFloat(r.weight)));
+  const range = maxW - minW || 1;
+  records.forEach(r => {
+    const bar = document.createElement('div');
+    bar.className = 'chart-bar';
+    bar.style.height = (50 + (parseFloat(r.weight) - minW) / range * 100) + 'px';
+    bar.title = r.date + ': ' + r.weight + 'kg';
+    bars.appendChild(bar);
+  });
+
+  // History list
+  const hist = document.getElementById('historyList');
+  hist.innerHTML = records.slice(-7).reverse().map(r =>
+    `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f5f5f7;font-size:13px;">
+      <span>${r.date}</span><span style="font-weight:600;">${r.weight}kg</span><span>${r.fat}%</span>
+    </div>`
+  ).join('');
+
+  // Update dashboard card preview
+  document.getElementById('bodyCardVal').textContent = latest.weight + 'kg';
+  document.getElementById('bodyCardSub').textContent = '最新记录';
+  document.getElementById('bodyCardPreview').textContent = records.length + ' 条记录';
+
+  // Profile data count
+  document.getElementById('bodyDataCount').textContent = records.length + ' 条记录';
+}
+
+function openModal(){
+  document.getElementById('recDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+
+function saveRecord(){
+  const date = document.getElementById('recDate').value;
+  const weight = document.getElementById('recWeight').value;
+  const fat = document.getElementById('recFat').value;
+  if(!date || !weight){ alert('请填写日期和体重'); return; }
+  const idx = records.findIndex(r=>r.date===date);
+  const entry = { date, weight: parseFloat(weight).toFixed(1), fat: parseFloat(fat||0).toFixed(1) };
+  if(idx >= 0) records[idx] = entry;
+  else records.push(entry);
+  records.sort((a,b)=>a.date.localeCompare(b.date));
+  saveRecords();
+  closeModal();
+  renderBody();
+}
+
+function importCSV(){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.csv';
+  input.onchange = function(e){
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      const lines = ev.target.result.split('\n');
+      let imported = 0;
+      lines.forEach(line => {
+        const cols = line.split(',');
+        // Try to parse: date, weight, body_fat
+        const date = cols[0]?.trim();
+        const weight = parseFloat(cols[1]);
+        if(date && !isNaN(weight) && weight > 20 && weight < 300){
+          const fat = parseFloat(cols[2]) || 0;
+          const idx = records.findIndex(r=>r.date===date);
+          const entry = { date, weight: weight.toFixed(1), fat: fat.toFixed(1) };
+          if(idx >= 0) records[idx] = entry;
+          else records.push(entry);
+          imported++;
+        }
+      });
+      records.sort((a,b)=>a.date.localeCompare(b.date));
+      saveRecords();
+      alert('导入成功：' + imported + ' 条记录');
+      renderBody();
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// Init
+renderBody();
+</script>
+</body>
+</html>
