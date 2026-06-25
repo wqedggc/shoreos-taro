@@ -7,9 +7,19 @@
 import * as localImpl from './local';
 import * as cloudImpl from './cloud';
 
-const USE_CLOUD = false; // 第二阶段接入 CloudBase 后改为 true
+const USE_CLOUD = false; // 改为 true 时启用 CloudBase 云端同步
 
-const { list, save, upsert, get, set, remove } = USE_CLOUD ? cloudImpl : localImpl;
+let activeImpl: typeof localImpl;
+
+if (USE_CLOUD) {
+  // 初始化 CloudBase（仅一次）
+  cloudImpl.initCloudBase();
+  activeImpl = cloudImpl;
+} else {
+  activeImpl = localImpl;
+}
+
+const { list, save, upsert, get, set, remove } = activeImpl;
 
 export { list, save, upsert, get, set, remove };
 
@@ -19,4 +29,5 @@ export const STORE_KEYS = {
   fireInput: 'shoreos_fire_input',
   fireResult: 'shoreos_fire_result', // 计算结果持久化
   targetWeight: 'shoreos_target_weight',
+  finance: 'shoreos_finance',      // 记账模块
 } as const;

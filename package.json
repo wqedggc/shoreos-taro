@@ -15,6 +15,8 @@
     "dev:h5": "npm run build:h5 -- --watch"
   },
   "dependencies": {
+    "@cloudbase/js-sdk": "^3.4.9-beta.0",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.6.2",
     "@tarojs/components": "4.2.0",
     "@tarojs/helper": "4.2.0",
     "@tarojs/plugin-platform-h5": "4.2.0",
@@ -29,9 +31,9 @@
     "zustand": "^4.5.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.8.0",
-    "@babel/preset-env": "^8.0.2",
-    "@babel/preset-react": "^8.0.1",
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "@babel/preset-react": "^7.24.0",
     "@tarojs/cli": "4.2.0",
     "@tarojs/plugin-framework-react": "4.2.0",
     "@tarojs/webpack5-runner": "4.2.0",

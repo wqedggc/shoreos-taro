@@ -8,17 +8,33 @@ import { list, STORE_KEYS } from '@/shared/services/dataStore';
 import './index.scss';
 
 interface BodyRecord { date: string; weight: number; fat: number; }
+interface FinanceRecord { amount: number; type: 'expense' | 'income'; date: string; }
 
 export default function Dashboard() {
   const { userInfo } = useAuthStore();
   const [records, setRecords] = useState<BodyRecord[]>(() => list<BodyRecord>(STORE_KEYS.body));
+  const [financeRecords, setFinanceRecords] = useState<FinanceRecord[]>(() => list<FinanceRecord>(STORE_KEYS.finance));
+  const [fireResult, setFireResult] = useState<any>(() => {
+    try { return list<any>('shoreos_fire_result')?.[0] || null; } catch { return null; }
+  });
 
   useDidShow(() => {
     setRecords(list<BodyRecord>(STORE_KEYS.body));
+    setFinanceRecords(list<FinanceRecord>(STORE_KEYS.finance));
+    try {
+      const fr = list<any>('shoreos_fire_result');
+      setFireResult(fr?.[0] || null);
+    } catch { setFireResult(null); }
   });
 
   const bodyLatest = records.length > 0 ? records[records.length - 1] : null;
   const bodyCount = records.length;
+
+  // 记账本月统计
+  const now = new Date();
+  const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const monthIncome = financeRecords.filter(r => r.date?.startsWith(monthStr) && r.type === 'income').reduce((s, r) => s + (r.amount || 0), 0);
+  const monthExpense = financeRecords.filter(r => r.date?.startsWith(monthStr) && r.type === 'expense').reduce((s, r) => s + (r.amount || 0), 0);
 
   const onCardTap = (mod) => {
     if (mod.route) Taro.navigateTo({ url: mod.route });
@@ -41,7 +57,9 @@ export default function Dashboard() {
                 <Text className='card-desc'>
                   {mod.id === 'body' && bodyCount > 0
                     ? `${bodyCount} 条记录`
-                    : '点击进入 →'}
+                    : mod.id === 'finance'
+                      ? `${monthExpense > 0 ? '支出 ' + monthExpense.toFixed(0) + '元' : '点击进入 →'}`
+                      : '点击进入 →'}
                 </Text>
               </View>
             </View>
@@ -53,8 +71,25 @@ export default function Dashboard() {
             )}
             {mod.id === 'fire' && (
               <View className='card-preview'>
-                <Text className='preview-big'>--</Text>
-                <Text className='preview-sub'>未计算</Text>
+                {fireResult ? (
+                  <>
+                    <Text className='preview-big'>{fireResult.freedomIndex?.toFixed(0)}%</Text>
+                    <Text className='preview-sub'>自由指数</Text>
+                  </>
+                ) : (
+                  <>
+                    <Text className='preview-big'>--</Text>
+                    <Text className='preview-sub'>未计算</Text>
+                  </>
+                )}
+              </View>
+            )}
+            {mod.id === 'finance' && (
+              <View className='card-preview'>
+                <Text className='preview-big' style={{ color: monthExpense > monthIncome ? '#ff3b30' : '#34c759' }}>
+                  {(monthIncome - monthExpense).toFixed(0)}
+                </Text>
+                <Text className='preview-sub'>本月结余(元)</Text>
               </View>
             )}
           </View>

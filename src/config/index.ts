@@ -48,14 +48,13 @@ export const MODULE_REGISTRY: ModuleManifest[] = [
     route: '/pages/body/index',
     enabled: true,
   },
-  // 预留扩展槽位
   {
     id: 'finance',
     name: '记账',
     icon: '💳',
-    cardComponent: '',
-    route: '',
-    enabled: false,
+    cardComponent: 'FinanceCard',
+    route: '/modules/finance/pages/index/index',
+    enabled: true,  // 启用记账模块
   },
   {
     id: 'sleep',

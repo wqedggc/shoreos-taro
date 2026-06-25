@@ -1,108 +1,160 @@
 /**
- * CloudBase 数据存储实现（预留）
+ * CloudBase 数据同步实现
  *
- * 当前为 localStorage 透传实现，
- * 第二阶段接入 CloudBase 小程序 SDK 后替换为真实云端读写。
+ * 生产实现：通过 @cloudbase/js-sdk 读写云端数据库
+ * 离线降级：失败时回退到 localStorage（Taro.get/setStorageSync）
  *
- * 接口与 local.ts 保持一致，dataStore.ts 可通过开关切换。
+ * 使用方式：
+ *   import { list, save, get, set, remove, upsert } from './cloud';
+ *   // 首次初始化（在小程序 App.onLaunch 里调用一次）
+ *   import { initCloudBase } from './cloud';
+ *   initCloudBase();
  */
+
 import Taro from '@tarojs/taro';
+import cloudbase from '@cloudbase/js-sdk';
 
-const USE_CLOUD = false; // 切换到 true 时启用 CloudBase（需先接入 SDK）
+// ========== 初始化 ==========
 
-// -------- CloudBase 占位实现 --------
-
-function cloudGet<T>(key: string): T | null {
-  // TODO: 接入 CloudBase 后替换为真实数据库查询
-  // 当前降级到 local
-  return localGet<T>(key);
-}
-
-function cloudSet<T>(key: string, data: T): void {
-  // TODO: 接入 CloudBase 后替换为真实数据库写入
-  localSet(key, data);
-}
-
-function cloudList<T>(key: string): T[] {
-  // TODO: 接入 CloudBase 后替换为真实数据库查询
-  return localList<T>(key);
-}
-
-function cloudSave<T>(key: string, items: T[]): void {
-  // TODO: 接入 CloudBase 后替换为真实数据库批量写入
-  localSave(key, items);
-}
-
-// -------- localStorage 降级实现 --------
-
-function localList<T>(key: string): T[] {
-  try {
-    const data = Taro.getStorageSync(key);
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
-
-function localSave<T>(key: string, items: T[]): void {
-  try { Taro.setStorageSync(key, items); } catch (e) { console.error('cloud.localSave error:', e); }
-}
-
-function localGet<T>(key: string): T | null {
-  try {
-    const data = Taro.getStorageSync(key);
-    return data ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function localSet<T>(key: string, item: T): void {
-  try { Taro.setStorageSync(key, item); } catch (e) { console.error('cloud.localSet error:', e); }
-}
-
-function cloudRemove(key: string): void {
-  try { Taro.removeStorageSync(key); } catch (e) { console.error('cloud.remove error:', e); }
-}
-
-// -------- 导出（接口与 local.ts 对齐）--------
-
-export function list<T>(key: string): T[] {
-  return USE_CLOUD ? cloudList<T>(key) : localList<T>(key);
-}
-
-export function save<T>(key: string, items: T[]): void {
-  if (USE_CLOUD) cloudSave(key, items); else localSave(key, items);
-}
-
-export function get<T>(key: string): T | null {
-  return USE_CLOUD ? cloudGet<T>(key) : localGet<T>(key);
-}
-
-export function set<T>(key: string, item: T): void {
-  if (USE_CLOUD) cloudSet(key, item); else localSet(key, item);
-}
-
-export function remove(key: string): void {
-  cloudRemove(key);
-}
+let cloudApp: any = null;
+let cloudReady = false;
+let currentOpenId: string | null = null;
 
 /**
- * 按指定字段去重合并（存在则覆盖，不存在则追加），并按该字段排序
- * 与 local.ts 中 upsert 接口保持一致
+ * 初始化 CloudBase
+ * 在小程序端：会自动获取登录态
+ * 在 H5 端：需要先用自定义登录
  */
-export function upsert<T>(key: string, item: T, matchKey: keyof T): T[] {
-  const items = list<T>(key);
-  const idx = items.findIndex(it => it[matchKey] === item[matchKey]);
+export function initCloudBase() {
+  if (cloudApp) return cloudApp;
+
+  cloudApp = cloudbase.init({
+    env: 'shoreos-d3gvi1l8qa5c37ff3', // 你的 CloudBase 环境 ID
+  });
+
+  // 匿名登录（小程序/H5 均支持）
+  cloudApp
+    .auth()
+    .anonymousAuthProvider()
+    .signIn()
+    .then((res: any) => {
+      cloudReady = true;
+      currentOpenId = res?.user?.uid || null;
+      console.log('[CloudBase] 匿名登录成功', currentOpenId);
+    })
+    .catch((err: any) => {
+      console.warn('[CloudBase] 匿名登录失败，将使用本地存储', err);
+      cloudReady = false;
+    });
+
+  return cloudApp;
+}
+
+export function isCloudReady(): boolean {
+  return cloudReady;
+}
+
+export function getOpenId(): string | null {
+  return currentOpenId;
+}
+
+// ========== 工具函数 ==========
+
+/** 获取集合引用 */
+function coll(name: string) {
+  if (!cloudApp) initCloudBase();
+  return cloudApp?.database?.().collection(name);
+}
+
+/** 安全地操作：cloud 失败时降级到 localStorage */
+function fallback<T>(fn: () => Promise<T>, localFn: () => T): Promise<T> {
+  return fn().catch((err: any) => {
+    console.warn('[CloudBase] 云端操作失败，降级本地', err);
+    return localFn();
+  });
+}
+
+// ========== 业务接口（与 local.ts 对齐）==========
+
+export async function list<T>(key: string): Promise<T[]> {
+  return fallback(
+    async () => {
+      const c = coll(key);
+      const res = await c.where({ _openid: currentOpenId }).get();
+      return res.data || [];
+    },
+    () => {
+      try { return Taro.getStorageSync(key) || []; } catch { return []; }
+    }
+  );
+}
+
+export async function get<T>(key: string): Promise<T | null> {
+  return fallback(
+    async () => {
+      const c = coll(key);
+      const res = await c.where({ _openid: currentOpenId }).limit(1).get();
+      return res.data?.[0] || null;
+    },
+    () => {
+      try { return Taro.getStorageSync(key) || null; } catch { return null; }
+    }
+  );
+}
+
+export async function set<T>(key: string, item: T): Promise<void> {
+  return fallback(
+    async () => {
+      const c = coll(key);
+      // 先查是否已存在
+      const existing = await c.where({ _openid: currentOpenId }).get();
+      if (existing.data?.length > 0) {
+        await c.doc(existing.data[0]._id).set(item);
+      } else {
+        await c.add({ ...item, _openid: currentOpenId });
+      }
+    },
+    () => {
+      try { Taro.setStorageSync(key, item); } catch (e) { console.error(e); }
+    }
+  );
+}
+
+export async function save<T>(key: string, items: T[]): Promise<void> {
+  return fallback(
+    async () => {
+      const c = coll(key);
+      // 全量替换：先删后插
+      const existing = await c.where({ _openid: currentOpenId }).get();
+      const deleteAll = existing.data?.map((d: any) => c.doc(d._id).remove()) || [];
+      await Promise.all(deleteAll);
+      await Promise.all(items.map((item: any) => c.add({ ...item, _openid: currentOpenId })));
+    },
+    () => {
+      try { Taro.setStorageSync(key, items); } catch (e) { console.error(e); }
+    }
+  );
+}
+
+export async function remove(key: string): Promise<void> {
+  return fallback(
+    async () => {
+      const c = coll(key);
+      const existing = await c.where({ _openid: currentOpenId }).get();
+      await Promise.all(existing.data?.map((d: any) => c.doc(d._id).remove()) || []);
+    },
+    () => {
+      try { Taro.removeStorageSync(key); } catch (e) { console.error(e); }
+    }
+  );
+}
+
+export async function upsert<T>(key: string, item: T, matchKey: keyof T): Promise<T[]> {
+  const items = await list<T>(key);
+  const idx = items.findIndex((it: T) => it[matchKey] === item[matchKey]);
   if (idx >= 0) items[idx] = item;
   else items.push(item);
-  items.sort((a, b) => {
-    const av = a[matchKey] as any;
-    const bv = b[matchKey] as any;
-    if (av < bv) return -1;
-    if (av > bv) return 1;
-    return 0;
-  });
-  save(key, items);
+  items.sort((a: any, b: any) => (a[matchKey] < b[matchKey] ? -1 : 1));
+  await save(key, items);
   return items;
 }
