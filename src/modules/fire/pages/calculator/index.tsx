@@ -3,11 +3,15 @@ import { useState } from 'react';
 import Taro from '@tarojs/taro';
 import { calculate, FireInputs } from '@/engine/fire';
 import { get, set, STORE_KEYS } from '@/shared/services/dataStore';
+import Step1Basic    from './steps/Step1Basic';
+import Step2Social   from './steps/Step2Social';
+import Step3Housing  from './steps/Step3Housing';
+import Step4Expense  from './steps/Step4Expense';
+import Step5Assets    from './steps/Step5Assets';
 import './index.scss';
 
 const currentYear = new Date().getFullYear();
 
-// 默认输入（首次进入或无历史时用）
 const defaultInputs: FireInputs = {
   birthYear: 1990,
   currentYear,
@@ -25,12 +29,27 @@ const defaultInputs: FireInputs = {
 };
 
 export default function FireCalculatorPage() {
-  const [inputs, setInputs] = useState<FireInputs>(
-    get<FireInputs>(STORE_KEYS.fireInput) ?? defaultInputs
-  );
+  const [step, setStep]       = useState(1);
+  const [slideDir, setSlideDir] = useState<'left' | 'right'>('left');
+  const [animKey, setAnimKey]   = useState(0); // 强制重绘触发动画
+  const [inputs, setInputs]     = useState<FireInputs>(get(STORE_KEYS.fireInput) ?? defaultInputs);
 
   const update = (key: keyof FireInputs, value: any) => {
     setInputs(prev => ({ ...prev, [key]: value }));
+  };
+
+  const goNext = () => {
+    if (step >= 5) return;
+    setSlideDir('left');
+    setAnimKey(k => k + 1);
+    setStep(s => s + 1);
+  };
+
+  const goPrev = () => {
+    if (step <= 1) return;
+    setSlideDir('right');
+    setAnimKey(k => k + 1);
+    setStep(s => s - 1);
   };
 
   const onCalc = () => {
@@ -39,143 +58,62 @@ export default function FireCalculatorPage() {
       Taro.showToast({ title: '请检查出生年份', icon: 'none' });
       return;
     }
-    // 存输入 + 结果，跳结果页
     set(STORE_KEYS.fireInput, inputs);
+    set(STORE_KEYS.fireResult, result);
     Taro.setStorageSync('shoreos_fire_result', result);
     Taro.navigateTo({ url: '/modules/fire/pages/result/index' });
   };
 
+  const progressPct = `${(step / 5) * 100}%`;
+
+  const renderStep = () => {
+    const common = { inputs, update };
+    switch (step) {
+      case 1:  return <Step1Basic   key={animKey} slideDir={slideDir} {...common} />;
+      case 2:  return <Step2Social  key={animKey} slideDir={slideDir} {...common} />;
+      case 3:  return <Step3Housing key={animKey} slideDir={slideDir} {...common} />;
+      case 4:  return <Step4Expense key={animKey} slideDir={slideDir} {...common} />;
+      case 5:  return <Step5Assets  key={animKey} slideDir={slideDir} {...common} onCalc={onCalc} />;
+      default: return null;
+    }
+  };
+
+  const stepLabels = ['', '基本信息', '社保', '住房', '开销', '资产'];
+
   return (
     <View className='fire-calc'>
-      {/* 基本信息 */}
-      <View className='form-group'>
-        <Text className='group-title'>基本信息</Text>
-        <View className='form-row'>
-          <Text className='form-label'>出生年份</Text>
-          <Input className='form-input' type='number' value={String(inputs.birthYear)} onInput={(e) => update('birthYear', parseInt(e.detail.value) || 0)} />
-        </View>
-        <View className='form-row'>
-          <Text className='form-label'>税后年收入</Text>
-          <Input className='form-input' type='digit' value={String(inputs.incomePost)} onInput={(e) => update('incomePost', parseFloat(e.detail.value) || 0)} />
-          <Text className='form-unit'>万</Text>
-        </View>
+      {/* 顶部进度条 */}
+      <View className='progress-track'>
+        <View className='progress-fill' style={{ width: progressPct }} />
       </View>
 
-      {/* 社保 */}
-      <View className='form-group'>
-        <Text className='group-title'>社保</Text>
-        <View className='form-row'>
-          <Text className='form-label'>已缴养老</Text>
-          <Input className='form-input' type='number' value={String(inputs.pensionYears)} onInput={(e) => update('pensionYears', parseInt(e.detail.value) || 0)} />
-          <Text className='form-unit'>年</Text>
-        </View>
-        <View className='form-row'>
-          <Text className='form-label'>已缴医疗</Text>
-          <Input className='form-input' type='number' value={String(inputs.medicalYears)} onInput={(e) => update('medicalYears', parseInt(e.detail.value) || 0)} />
-          <Text className='form-unit'>年</Text>
-        </View>
-        <View className='form-row'>
-          <Text className='form-label'>养老月缴</Text>
-          <Input className='form-input' type='digit' value={String(inputs.pensionSelfPay)} onInput={(e) => update('pensionSelfPay', parseFloat(e.detail.value) || 0)} />
-          <Text className='form-unit'>元</Text>
-        </View>
-        <View className='form-row'>
-          <Text className='form-label'>医疗月缴</Text>
-          <Input className='form-input' type='digit' value={String(inputs.medicalSelfPay)} onInput={(e) => update('medicalSelfPay', parseFloat(e.detail.value) || 0)} />
-          <Text className='form-unit'>元</Text>
-        </View>
-        <View className='form-row'>
-          <Text className='form-label'>缴纳策略</Text>
-          <Picker mode='selector' range={['缴满即停', '一直缴到退休']} value={inputs.ssStrategy === 'min' ? 0 : 1} onChange={(e) => update('ssStrategy', e.detail.value === 0 ? 'min' : 'retire')}>
-            <View className='form-picker'>{inputs.ssStrategy === 'min' ? '缴满即停' : '一直缴到退休'}</View>
-          </Picker>
-        </View>
+      {/* 步骤指示器 */}
+      <View className='step-indicator'>
+        {stepLabels.slice(1).map((label, i) => (
+          <View key={i} className={`step-dot-wrap ${i + 1 <= step ? 'done' : ''} ${i + 1 === step ? 'current' : ''}`}>
+            <View className='step-dot'>{i + 1}</View>
+            <Text className='step-dot-label'>{label}</Text>
+          </View>
+        ))}
       </View>
 
-      {/* 住房 */}
-      <View className='form-group'>
-        <Text className='group-title'>住房</Text>
-        <View className='form-row'>
-          <Text className='form-label'>住房类型</Text>
-          <Picker mode='selector' range={['租房', '房贷', '无']} value={inputs.houseType === 'rent' ? 0 : inputs.houseType === 'mortgage' ? 1 : 2} onChange={(e) => update('houseType', e.detail.value === 0 ? 'rent' : e.detail.value === 1 ? 'mortgage' : 'none')}>
-            <View className='form-picker'>{inputs.houseType === 'rent' ? '租房' : inputs.houseType === 'mortgage' ? '房贷' : '无'}</View>
-          </Picker>
-        </View>
-        {inputs.houseType === 'rent' && (
-          <View className='form-row'>
-            <Text className='form-label'>月租金</Text>
-            <Input className='form-input' type='digit' value={String(inputs.expRent)} onInput={(e) => update('expRent', parseFloat(e.detail.value) || 0)} />
-            <Text className='form-unit'>元</Text>
+      {/* 步骤内容（带动画） */}
+      <View className='step-body'>
+        {renderStep()}
+      </View>
+
+      {/* 底部导航按钮 */}
+      <View className='bottom-bar'>
+        {step > 1 && (
+          <View className='btn-secondary' onClick={goPrev}>
+            <Text>← 上一步</Text>
           </View>
         )}
-        {inputs.houseType === 'mortgage' && (
-          <>
-            <View className='form-row'>
-              <Text className='form-label'>月供</Text>
-              <Input className='form-input' type='digit' value={String(inputs.expMortgage)} onInput={(e) => update('expMortgage', parseFloat(e.detail.value) || 0)} />
-              <Text className='form-unit'>元</Text>
-            </View>
-            <View className='form-row'>
-              <Text className='form-label'>剩余年限</Text>
-              <Input className='form-input' type='number' value={String(inputs.mortgageYearsLeft)} onInput={(e) => update('mortgageYearsLeft', parseInt(e.detail.value) || 0)} />
-              <Text className='form-unit'>年</Text>
-            </View>
-          </>
-        )}
-      </View>
-
-      {/* 当前开销 */}
-      <View className='form-group'>
-        <Text className='group-title'>当前月开销</Text>
-        {[
-          ['expFood', '饮食'], ['expTransport', '交通'], ['expEntertain', '娱乐'],
-          ['expInsurance', '保险'], ['expOther', '其他'],
-        ].map(([key, label]) => (
-          <View className='form-row' key={key}>
-            <Text className='form-label'>{label}</Text>
-            <Input className='form-input' type='digit' value={String(inputs[key])} onInput={(e) => update(key as keyof FireInputs, parseFloat(e.detail.value) || 0)} />
-            <Text className='form-unit'>元</Text>
+        {step < 5 ? (
+          <View className='btn-primary' onClick={goNext}>
+            <Text>下一步 →</Text>
           </View>
-        ))}
-      </View>
-
-      {/* 退休后开销 */}
-      <View className='form-group'>
-        <Text className='group-title'>退休后月开销</Text>
-        {[
-          ['expQHousing', '住房'], ['expQFood', '饮食'], ['expQTransport', '交通'],
-          ['expQEntertain', '娱乐'], ['expQInsurance', '保险'], ['expQOther', '其他'],
-        ].map(([key, label]) => (
-          <View className='form-row' key={key}>
-            <Text className='form-label'>{label}</Text>
-            <Input className='form-input' type='digit' value={String(inputs[key])} onInput={(e) => update(key as keyof FireInputs, parseFloat(e.detail.value) || 0)} />
-            <Text className='form-unit'>元</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* 资产 */}
-      <View className='form-group'>
-        <Text className='group-title'>资产（万元）</Text>
-        {[
-          ['assetCash', '现金'], ['assetDeposit', '存款'], ['assetFund', '基金'],
-          ['assetStock', '股票'], ['assetPension', '养老金'],
-        ].map(([key, label]) => (
-          <View className='form-row' key={key}>
-            <Text className='form-label'>{label}</Text>
-            <Input className='form-input' type='digit' value={String(inputs[key])} onInput={(e) => update(key as keyof FireInputs, parseFloat(e.detail.value) || 0)} />
-            <Text className='form-unit'>万</Text>
-          </View>
-        ))}
-        <View className='form-row'>
-          <Text className='form-label'>年化收益</Text>
-          <Input className='form-input' type='digit' value={String(inputs.assetReturn)} onInput={(e) => update('assetReturn', parseFloat(e.detail.value) || 0)} />
-          <Text className='form-unit'>%</Text>
-        </View>
-      </View>
-
-      <View className='calc-btn' onClick={onCalc}>
-        <Text>开始计算</Text>
+        ) : null}
       </View>
     </View>
   );

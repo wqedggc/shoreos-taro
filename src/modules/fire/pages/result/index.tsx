@@ -2,13 +2,18 @@ import { View, Text } from '@tarojs/components';
 import { useState } from 'react';
 import Taro from '@tarojs/taro';
 import { FireResult } from '@/engine/fire';
+import { get, STORE_KEYS } from '@/shared/services/dataStore';
 import './index.scss';
 
 export default function FireResultPage() {
   const [result] = useState<FireResult | null>(() => {
+    // 优先从 dataStore 读取（持久化）
+    const fromStore = get<FireResult>(STORE_KEYS.fireResult);
+    if (fromStore) return fromStore;
+    // 降级：兼容旧版本从 StorageSync 读取
     try {
-      const r = Taro.getStorageSync('shoreos_fire_result');
-      return r || null;
+      const fromSync = Taro.getStorageSync('shoreos_fire_result');
+      return fromSync || null;
     } catch {
       return null;
     }
@@ -28,7 +33,9 @@ export default function FireResultPage() {
   }
 
   // 自由指数颜色
-  const fiColor = result.freedomIndex >= 100 ? '#34c759' : result.freedomIndex >= 50 ? '#ff9500' : '#ff3b30';
+  const fiColor =
+    result.freedomIndex >= 100 ? '#34c759' :
+    result.freedomIndex >= 50 ? '#ff9500' : '#ff3b30';
 
   // 情景推演列表
   const scenarios = result.scenarios;

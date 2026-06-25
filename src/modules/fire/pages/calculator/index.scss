@@ -1,23 +1,250 @@
-.fire-calc { padding: 16px 12px 80px; min-height: 100vh; background: #f2f2f7; }
-.form-group { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
-.group-title { font-size: 14px; font-weight: 700; color: #8e8e93; display: block; margin-bottom: 8px; }
+/* ========== 全局容器 ========== */
+.fire-calc {
+  min-height: 100vh;
+  background: #f2f2f7;
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
+}
+
+/* ========== 顶部进度条 ========== */
+.progress-track {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: #e5e5ea;
+  z-index: 999;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #007aff, #34c759);
+  transition: width 400ms ease;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ========== 步骤指示器（圆点 + 标签） ========== */
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 24px 8px;
+}
+.step-dot-wrap {
+  display: flex; flex-direction: column; align-items: center; flex: 1;
+}
+.step-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #e5e5ea; color: #8e8e93;
+  font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 250ms ease;
+}
+.step-dot-wrap.done .step-dot {
+  background: #34c759; color: #fff;
+}
+.step-dot-wrap.current .step-dot {
+  background: #007aff; color: #fff;
+  box-shadow: 0 0 0 4px rgba(0,122,255,0.15);
+}
+.step-dot-label {
+  font-size: 10px; color: #8e8e93; margin-top: 4px;
+}
+.step-dot-wrap.done .step-dot-label,
+.step-dot-wrap.current .step-dot-label { color: #1c1c1e; }
+
+/* ========== 步骤内容区 ========== */
+.step-body {
+  padding: 8px 12px 0;
+}
+.step-panel {
+  transition: transform 250ms ease-out, opacity 200ms ease;
+}
+.step-panel.enter-left  { transform: translateX(0);   opacity: 1; }
+.step-panel.exit-left   { transform: translateX(-30px); opacity: 0; }
+.step-panel.enter-right { transform: translateX(0);   opacity: 1; }
+.step-panel.exit-right  { transform: translateX(30px);  opacity: 0; }
+
+/* ========== 步骤头部 ========== */
+.step-header { margin-bottom: 12px; }
+.step-title {
+  font-size: 22px; font-weight: 700; color: #1c1c1e;
+  display: block;
+}
+.step-desc {
+  font-size: 13px; color: #8e8e93; margin-top: 4px;
+  display: block;
+}
+
+/* ========== 表单通用 ========== */
+.form-group {
+  background: #fff; border-radius: 14px;
+  padding: 12px 14px; margin-bottom: 12px;
+}
+.group-title {
+  font-size: 13px; font-weight: 600; color: #8e8e93;
+  margin-bottom: 4px; display: block;
+}
+.group-title-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 4px;
+}
+.group-total {
+  font-size: 13px; font-weight: 600; color: #007aff;
+}
 .form-row {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 8px;
   padding: 10px 0; border-bottom: 1px solid #f5f5f7;
 }
 .form-row:last-child { border-bottom: none; }
-.form-label { width: 80px; font-size: 14px; color: #1c1c1e; flex-shrink: 0; }
+.form-label { width: 76px; font-size: 14px; color: #1c1c1e; flex-shrink: 0; }
 .form-input {
   flex: 1; padding: 8px 12px; border: 1.5px solid #e5e5ea;
-  border-radius: 8px; font-size: 15px; text-align: right; background: #fdfaf7;
+  border-radius: 8px; font-size: 15px; text-align: right;
+  background: #fdfaf7;
 }
 .form-picker {
   flex: 1; padding: 8px 12px; border: 1.5px solid #e5e5ea;
-  border-radius: 8px; font-size: 15px; text-align: right; background: #fdfaf7; color: #1c1c1e;
+  border-radius: 8px; font-size: 15px; text-align: right;
+  background: #fdfaf7; color: #1c1c1e;
 }
 .form-unit { font-size: 12px; color: #8e8e93; width: 28px; }
-.calc-btn {
-  position: fixed; bottom: 20px; left: 12px; right: 12px;
-  background: #007aff; color: #fff; border-radius: 14px;
-  padding: 16px; text-align: center; font-size: 16px; font-weight: 700;
+
+/* ========== 住房卡片选择 ========== */
+.house-cards {
+  display: flex; gap: 10px; margin-bottom: 12px;
 }
+.house-card {
+  flex: 1; padding: 14px 8px; border: 1.5px solid #e5e5ea;
+  border-radius: 12px; text-align: center;
+  transition: all 200ms ease;
+}
+.house-card.active {
+  border-color: #007aff; background: #f0f7ff; transform: scale(1.03);
+}
+.house-card-label { font-size: 14px; font-weight: 600; display: block; }
+.house-card-desc { font-size: 11px; color: #8e8e93; margin-top: 2px; display: block; }
+
+/* ========== 折叠动画 ========== */
+.collapse-wrap {
+  max-height: 0; opacity: 0; overflow: hidden;
+  transition: max-height 300ms ease, opacity 250ms ease;
+}
+.collapse-wrap.open {
+  max-height: 300px; opacity: 1;
+  margin-bottom: 8px;
+}
+.collapse-inner { padding-top: 4px; }
+
+/* ========== 步骤提示 ========== */
+.step-tip {
+  background: #fff8f0; border-radius: 10px;
+  padding: 10px 14px; margin-top: 4px;
+}
+.tip-text { font-size: 12px; color: #b86c00; line-height: 1.5; }
+
+/* ========== 资产总览 ========== */
+.asset-summary {
+  background: linear-gradient(135deg, #007aff, #5856d6);
+  border-radius: 14px; padding: 20px;
+  margin-bottom: 12px; color: #fff;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.asset-summary-label { font-size: 14px; opacity: 0.85; }
+.asset-summary-value { font-size: 28px; font-weight: 700; }
+
+/* ========== 年化收益滑杆提示 ========== */
+.range-hint { padding: 4px 0 0; }
+.hint-text { font-size: 11px; color: #8e8e93; }
+
+/* ========== 底部导航栏 ========== */
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #fff;
+  border-top: 0.5px solid #e5e5ea;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  display: flex; gap: 12px; z-index: 100;
+}
+.btn-primary {
+  flex: 1; background: #007aff; color: #fff;
+  border-radius: 12px; padding: 14px 0;
+  text-align: center; font-size: 16px; font-weight: 600;
+}
+.btn-secondary {
+  width: 100px; background: #f2f2f7; color: #1c1c1e;
+  border-radius: 12px; padding: 14px 0;
+  text-align: center; font-size: 15px; font-weight: 500;
+}
+
+/* ========== 计算按钮（Step5 内） ========== */
+.calc-btn {
+  background: linear-gradient(135deg, #007aff, #34c759);
+  color: #fff; border-radius: 14px;
+  padding: 16px 0; text-align: center;
+  font-size: 17px; font-weight: 700;
+  margin: 16px 0 8px;
+  box-shadow: 0 4px 14px rgba(0,122,255,0.25);
+}
+
+/* ========== 结果页 ========== */
+.fire-result { padding: 16px 12px 60px; min-height: 100vh; background: #f2f2f7; }
+.hero-card {
+  background: #fff; border-radius: 20px; padding: 32px 20px;
+  text-align: center; margin-bottom: 16px;
+}
+.hero-label { font-size: 14px; color: #8e8e93; display: block; }
+.hero-value { font-size: 56px; font-weight: 800; display: block; margin: 8px 0; }
+.hero-sub { font-size: 15px; color: #8e8e93; display: block; }
+
+.empty { text-align: center; padding: 80px 0; color: #8e8e93; }
+.recalc-btn {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #007aff; color: #fff; padding: 16px;
+  text-align: center; font-size: 16px; font-weight: 600;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+/* ========== 结果页辅助 ========== */
+.info-card {
+  background: #fff; border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 12px;
+}
+.card-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; display: block; }
+
+.metric-grid {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+}
+.metric-cell {
+  flex: 1 1 40%; background: #fff; border-radius: 12px;
+  padding: 14px; text-align: center;
+}
+.cell-value { font-size: 22px; font-weight: 700; display: block; color: #1c1c1e; }
+.cell-label { font-size: 11px; color: #8e8e93; margin-top: 4px; display: block; }
+
+.info-row {
+  display: flex; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid #f5f5f7;
+}
+.info-label { font-size: 14px; color: #1c1c1e; }
+.info-value { font-size: 14px; font-weight: 600; color: #1c1c1e; }
+
+.scenario-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid #f5f5f7;
+}
+.scenario-label { font-size: 14px; color: #1c1c1e; }
+.scenario-age  { font-size: 12px; color: #8e8e93; }
+.scenario-assets { font-size: 14px; font-weight: 600; color: #1c1c1e; }
+.scenario-free   { font-size: 12px; color: #34c759; margin-left: 6px; }
+
+/* ========== 资产预测柱图（结果页） ========== */
+.proj-chart {
+  display: flex; align-items: flex-end; gap: 4px;
+  height: 160px; padding-top: 8px;
+}
+.proj-col {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; height: 100%;
+  justify-content: flex-end;
+}
+.proj-bar {
+  width: 100%; background: linear-gradient(0deg, #007aff, #5ac8fa);
+  border-radius: 4px 4px 0 0; min-height: 2px;
+}
+.proj-label { font-size: 9px; color: #8e8e93; margin-top: 4px; }
