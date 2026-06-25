@@ -1,0 +1,25 @@
+.body-page { padding: 16px 12px; min-height: 100vh; background: #f2f2f7; }
+.body-metrics { display: flex; gap: 8px; margin-bottom: 12px; }
+.body-metric {
+  flex: 1; background: #fff; border-radius: 14px;
+  padding: 16px; text-align: center;
+}
+.metric-value { font-size: 28px; font-weight: 900; color: #1c1c1e; display: block; }
+.metric-label { font-size: 11px; color: #8e8e93; margin-top: 4px; }
+.body-card {
+  background: #fff; border-radius: 14px; padding: 16px;
+  margin-bottom: 12px;
+}
+.card-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+.progress-bar {
+  height: 8px; background: #e5e5ea; border-radius: 4px; overflow: hidden; margin: 8px 0;
+}
+.progress-fill { height: 100%; background: #34c759; border-radius: 4px; transition: width 0.3s; }
+.progress-text { font-size: 12px; color: #8e8e93; }
+.body-actions { display: flex; gap: 10px; margin-bottom: 12px; }
+.action-btn {
+  flex: 1; padding: 14px; border-radius: 14px; text-align: center;
+  font-size: 14px; font-weight: 700; background: #fff;
+}
+.action-btn.primary { background: #007aff; color: #fff; }
+.empty-text { font-size: 13px; color: #8e8e93; text-align: center; padding: 20px 0; }
